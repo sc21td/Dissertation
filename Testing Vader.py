@@ -7,9 +7,9 @@ sid_obj = SentimentIntensityAnalyzer()
 # Get the lexicon dictionary
 vader_lexicon = sid_obj.lexicon
 
-# Print the first 20 entries to check
-# for word, score in list(vader_lexicon.items())[:20]:  # Adjust number as needed
-#     print(f"{word}: {score}")
+#Print the first 20 entries to check
+for word, score in list(vader_lexicon.items())[1000:1050]:  # Adjust number as needed
+    print(f"{word}: {score}")
 
 
 # word_to_check = "dominant"  # Change this to any word you want to inspect
@@ -20,9 +20,9 @@ vader_lexicon = sid_obj.lexicon
 
 
 # Convert lexicon to a DataFrame
-df = pd.DataFrame(vader_lexicon.items(), columns=["Word", "Score"])
+#df = pd.DataFrame(vader_lexicon.items(), columns=["Word", "Score"])
 
 # Save to CSV
-df.to_csv("vader_lexicon.csv", index=False)
+# df.to_csv("vader_lexicon.csv", index=False)
 
-print("Lexicon saved as vader_lexicon.csv")
+# print("Lexicon saved as vader_lexicon.csv")
