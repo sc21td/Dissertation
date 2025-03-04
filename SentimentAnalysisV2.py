@@ -26,22 +26,22 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 # For model evaluation
 from sklearn.metrics import accuracy_score, f1_score, classification_report
+#  For saving the model
+import pickle
 
-def shuffle_and_split_dataset(file_path, sheet_name="Dataset", train_size=0.8, val_size=0.1, test_size=0.2, random_state=42):
+def shuffle_and_split_dataset(file_path, sheet_name="Dataset", train_size=0.9, test_size=0.1, random_state=42):
     """
     Loads, shuffles, and splits the dataset into training, validation, and test sets.
 
     Parameters:
     - file_path (str): Path to the Excel file containing the original dataset.
     - sheet_name (str): Sheet name of original dataset.
-    - train_size (float): Proportion of the dataset to use for training - 80%.
-    - val_size (float): Proportion of the dataset to use for validation - 10%.
-    - test_size (float): Proportion of the dataset to use for testing - 10%.
+    - train_size (float): Proportion of the dataset to use for training - 80% originally and now for final training - 90%
+    - test_size (float): Proportion of the dataset to use for testing - 10% originally and now for final testing - 10%
     - random_state (int): Common convention to set it as 42 whic ensures reproducability.
 
     Saves:
     - Train_Dataset.xlsx
-    - Validation_Dataset.xlsx
     - Test_Dataset.xlsx
     """
     # Load dataset
@@ -68,12 +68,15 @@ def shuffle_and_split_dataset(file_path, sheet_name="Dataset", train_size=0.8, v
     #val_df, test_df = train_test_split(temp_df, test_size=(test_size / (val_size + test_size)), random_state=random_state, stratify=temp_df["Labelled Rating"])
 
     # Split into 80/20 split
+    #train_df, test_df = train_test_split(df, test_size=(1 - train_size), random_state=random_state, stratify=df["Labelled Rating"])
+    
+    # Split dataset into training (90%) and test (10%)
     train_df, test_df = train_test_split(df, test_size=(1 - train_size), random_state=random_state, stratify=df["Labelled Rating"])
 
     # Save splits into separate Excel files
-    train_df.to_excel("Train_DatasetV2.xlsx", index=False)
+    train_df.to_excel("Train_DatasetFinal.xlsx", index=False)
     #val_df.to_excel("Validation_Dataset.xlsx", index=False)
-    test_df.to_excel("Test_DatasetV2.xlsx", index=False)
+    test_df.to_excel("Test_DatasetFinal.xlsx", index=False)
 
     # Display split sizes
     print(f"Training set: {len(train_df)} headlines")
@@ -130,7 +133,7 @@ def apply_tfidf(df, text_column="Statement", max_features=500):
 
 def train_model(train_file="Train_Dataset_FinalV2.xlsx"):
     """
-    Trains a sentiment classification model using either Logistic Regression or Naïve Bayes.
+    Trains a sentiment classification model using Logistic Regression and saves it
 
     Parameters:
     - train_file (str): Path to the processed training dataset (with VADER & TF-IDF features).
@@ -140,6 +143,7 @@ def train_model(train_file="Train_Dataset_FinalV2.xlsx"):
     - X_train (pd.DataFrame): Training feature set.
     - y_train (pd.Series): Training labels.
     - label_encoder (LabelEncoder): Encoder used to transform sentiment labels.
+    - Saves trained model vectoriser and label encoder
     """
 
     # Load the training dataset
@@ -162,11 +166,21 @@ def train_model(train_file="Train_Dataset_FinalV2.xlsx"):
     # Train the model
     model.fit(X_train, y_train) 
 
-    print("Model training completed")
-    
-    return model, X_train, y_train, label_encoder
+    # Save model, vectoriser, and label encoder
+    with open("final_model.pkl", "wb") as model_file:
+        pickle.dump(model, model_file)
 
-def test_model(model, vectoriser, label_encoder, test_file="Test_DatasetV2.xlsx"):
+    with open("tfidf_vectorizer.pkl", "wb") as vectorizer_file:
+        pickle.dump(vectoriser, vectorizer_file)
+
+    with open("label_encoder.pkl", "wb") as encoder_file:
+        pickle.dump(label_encoder, encoder_file)
+
+    print("Final model trained and saved successfully.")
+    return model, vectoriser, label_encoder
+    #return model, X_train, y_train, label_encoder
+
+def test_model(model, vectoriser, label_encoder, test_file="Test_DatasetFinal.xlsx"):
     """
     Tests the trained model on unseen test data.
 
@@ -234,7 +248,7 @@ if __name__ == "__main__":
     print("Shuffled dataset")
 
     # 2) Load training dataset
-    train_df = pd.read_excel("Train_DatasetV2.xlsx")
+    train_df = pd.read_excel("Train_DatasetFinal.xlsx")
     print("Dataset loaded")
 
     # # 3) Apply VADER
@@ -254,8 +268,8 @@ if __name__ == "__main__":
     print("VADER and TF-IDF processing completed and saved successfully")
 
     # 7) Train model using preprocessed dataset
-    model, X_train, y_train, label_encoder = train_model()
-    print ("Step 7 complete")
+    #model, X_train, y_train, label_encoder = train_model()
+    model, vectoriser, label_encoder = train_model()
     
     # 8) Test model on 10% test set (60 heasdlines)
     y_true, y_pred = test_model(model, vectoriser, label_encoder)
