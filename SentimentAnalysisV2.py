@@ -166,11 +166,13 @@ def train_model(train_file="Train_Dataset_FinalV2.xlsx"):
     # Train the model
     model.fit(X_train, y_train) 
 
+    print("TF-IDF training feature names:", vectoriser.get_feature_names_out())
+
     # Save model, vectoriser, and label encoder
     with open("final_model.pkl", "wb") as model_file:
         pickle.dump(model, model_file)
 
-    with open("tfidf_vectorizer.pkl", "wb") as vectorizer_file:
+    with open("tfidf_vectoriser.pkl", "wb") as vectorizer_file:
         pickle.dump(vectoriser, vectorizer_file)
 
     with open("label_encoder.pkl", "wb") as encoder_file:
