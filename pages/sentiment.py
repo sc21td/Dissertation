@@ -1,8 +1,3 @@
-## Current code takes a user inputted headline and classifies it, along with an explanation
-
-## Updating code to add uploading excel of headlines and then sorting them accordingly
-## Also adding confidence scores
-
 import streamlit as st
 import pickle
 import pandas as pd
@@ -11,6 +6,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Load trained model and components
+# Cached in streamlit to load quicker
 @st.cache_resource
 def load_model():
     with open("final_model.pkl", "rb") as model_file:
@@ -25,28 +21,30 @@ model, vectoriser, label_encoder = load_model()
 
 # Function to extract VADER sentiment scores
 def extract_vader_scores(text):
-    analyzer = SentimentIntensityAnalyzer()
-    scores = analyzer.polarity_scores(text)
+    # Initialise a vader analyser
+    analyser = SentimentIntensityAnalyzer()
+    scores = analyser.polarity_scores(text)
     return pd.DataFrame([scores])
 
-# Streamlit UI
+# Page title
 st.title("📊 Tennis Headline Sentiment Classifier")
 
-# Upload an Excel file for batch classification
+# Upload an Excel file for classification
 uploaded_file = st.file_uploader("Upload an Excel file with a column 'Headline'", type=["xlsx"])
 
 if uploaded_file:
     # Read Excel file into a DataFrame
     df = pd.read_excel(uploaded_file)
 
-    # Check if 'Headline' column exists
+    # Check if 'Headline' column exists within Excel
     if 'Headline' not in df.columns:
         st.error("The uploaded file must contain a column named 'Headline'.")
     else:
         # Process each headline in the file
         results = {"Positive": [], "Neutral": [], "Negative": []}
 
-        for headline in df["Headline"].dropna():  # Drop any empty rows
+        # Drop any empty rows
+        for headline in df["Headline"].dropna():  
             # Extract VADER scores
             vader_scores = extract_vader_scores(headline)
 
@@ -75,12 +73,14 @@ if uploaded_file:
 
             # Adding confidence
             # Process each headline in the file
-
             # Predict sentiment and get confidence score
-            probs = model.predict_proba(features)  # Get probability scores for each class
-            prediction = np.argmax(probs)  # Get index of highest probability class
+            # Get probability scores for each class
+            probs = model.predict_proba(features)  
+            # Get index of highest probability class
+            prediction = np.argmax(probs)  
             sentiment = label_encoder.inverse_transform([prediction])[0]
-            confidence = probs[0][prediction]  # Get confidence score for the chosen class
+            # Get confidence score for the chosen class
+            confidence = probs[0][prediction]  
 
             # Append to corresponding category with confidence percentage
             results[sentiment].append(f"{headline} ({confidence:.2%} confidence)")
