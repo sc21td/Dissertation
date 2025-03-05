@@ -52,11 +52,23 @@ def get_player_tournament_stats(df, player_name, tournament, year):
         ]["w_df"].mean() if not player_winner_matches.empty else player_matches[
             player_matches["loser_name"] == player_name
         ]["l_df"].mean(),
-        "Tournament Break Points Saved": player_matches[
+        "Break Points Faced": player_matches[
             player_matches["winner_name"] == player_name
-        ]["w_bpSaved"].mean() if not player_winner_matches.empty else player_matches[
+        ]["w_bpFaced"].mean() if not player_winner_matches.empty else player_matches[
             player_matches["loser_name"] == player_name
-        ]["l_bpSaved"].mean(),
+        ]["l_bpFaced"].mean(),
+        "Break Points Saved Percentage": (
+            (player_matches[
+                player_matches["winner_name"] == player_name
+            ]["w_bpSaved"].mean() / player_matches[
+                player_matches["winner_name"] == player_name
+            ]["w_bpFaced"].mean() * 100) if not player_winner_matches.empty 
+            else (player_matches[
+                player_matches["loser_name"] == player_name
+            ]["l_bpSaved"].mean() / player_matches[
+                player_matches["loser_name"] == player_name
+            ]["l_bpFaced"].mean() * 100)
+        )
     }
 
     return player_matches, tournament_stats
@@ -99,7 +111,8 @@ def main():
             metrics = {
                 "Avg Match Duration": f"{tournament_stats['Avg Match Duration']:.1f} mins",
                 "Avg Aces": f"{tournament_stats['Tournament Aces']:.1f}",
-                "Avg Double Faults": f"{tournament_stats['Tournament Double Faults']:.1f}"
+                "Avg Double Faults": f"{tournament_stats['Tournament Double Faults']:.1f}",
+                "Break Points Saved": f"{tournament_stats['Break Points Saved Percentage']:.1f}%"
             }
 
             for i, (metric, value) in enumerate(metrics.items()):
