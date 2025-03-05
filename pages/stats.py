@@ -112,7 +112,17 @@ def main():
                 "Tournament", "Round", "Surface", 
                 "Winner", "Loser", "Score"
             ]
-            st.dataframe(player_matches[display_columns])
+
+            tournament_matches = player_matches.rename(columns={
+                "tourney_name": "Tournament",
+                "round": "Round",
+                "surface": "Surface",
+                "winner_name": "Winner",
+                "loser_name": "Loser",
+                "score": "Score"
+            })
+            
+            st.dataframe(tournament_matches[display_columns])
 
 # This ensures the page can be run directly
 if __name__ == "__main__":
