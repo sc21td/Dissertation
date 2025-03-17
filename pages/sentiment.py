@@ -73,7 +73,7 @@ if uploaded_file:
 
             # Adding confidence
             # Process each headline in the file
-            # Predict sentiment and get confidence score
+            # Predict sentiment and get confidence score from Vader as to likelihood of pos,neg or neu
             # Get probability scores for each class
             probs = model.predict_proba(features)  
             # Get index of highest probability class
