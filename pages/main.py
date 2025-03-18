@@ -197,11 +197,11 @@ def scrape_bbc_sport(player, tournament, year, max_pages=3):
 @st.cache_resource
 def load_model():
     try:
-        with open("final_model.pkl", "rb") as model_file:
+        with open("C:/Users/tobyl/OneDrive/Documents/4th Year/Dissertation/Repository/Model Training/Finalised Model/final_model.pkl", "rb") as model_file:
             model = pickle.load(model_file)
-        with open("tfidf_vectoriser.pkl", "rb") as vectorizer_file:
+        with open("C:/Users/tobyl/OneDrive/Documents/4th Year/Dissertation/Repository/Model Training/Finalised Model/tfidf_vectoriser.pkl", "rb") as vectorizer_file:
             vectoriser = pickle.load(vectorizer_file)
-        with open("label_encoder.pkl", "rb") as encoder_file:
+        with open("C:/Users/tobyl/OneDrive/Documents/4th Year/Dissertation/Repository/Model Training/Finalised Model/label_encoder.pkl", "rb") as encoder_file:
             label_encoder = pickle.load(encoder_file)
         return model, vectoriser, label_encoder
     except FileNotFoundError as e:
@@ -244,7 +244,7 @@ def analyse_headlines_sentiment(headlines_df):
         
         # Ensure the final feature order matches training
         try:
-            trained_feature_order = list(pd.read_excel("Train_Dataset_FinalV2.xlsx").drop(columns=["Labelled Rating"]).columns)
+            trained_feature_order = list(pd.read_excel("C:/Users/tobyl/OneDrive/Documents/4th Year/Dissertation/Repository/Model Training/Finalised Model/Train_Dataset_FinalV2.xlsx").drop(columns=["Labelled Rating"]).columns)
             features = features.reindex(columns=trained_feature_order, fill_value=0)
         except FileNotFoundError:
             st.warning("Training dataset file not found. Feature order may not match exactly.")
