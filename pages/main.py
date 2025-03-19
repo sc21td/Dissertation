@@ -392,6 +392,139 @@ def get_player_yearly_stats(df, player_name, year):
 
     return yearly_stats
 
+####################
+#TOURNAMENT AVERAGES COMPARISON
+def calculate_tour_averages(df, tournament):
+
+    # Filter matches for the specific tournament
+    tournament_matches = df[df["tourney_name"].str.contains(tournament, case=False, na=False)]
+    
+    if tournament_matches.empty:
+        return {}
+    
+    # Calculate averages for winners
+    winners_aces = tournament_matches["w_ace"].mean()
+    winners_double_faults = tournament_matches["w_df"].mean()
+    winners_bp_faced = tournament_matches["w_bpFaced"].mean()
+    winners_bp_saved = tournament_matches["w_bpSaved"].mean()
+    
+    # Calculate averages for losers
+    losers_aces = tournament_matches["l_ace"].mean()
+    losers_double_faults = tournament_matches["l_df"].mean()
+    losers_bp_faced = tournament_matches["l_bpFaced"].mean()
+    losers_bp_saved = tournament_matches["l_bpSaved"].mean()
+    
+    # Calculate overall tour averages
+    tour_averages = {
+        "aces": (winners_aces + losers_aces) / 2,
+        "double_faults": (winners_double_faults + losers_double_faults) / 2,
+        "break_points_faced": (winners_bp_faced + losers_bp_faced) / 2,
+        "break_points_saved": (winners_bp_saved + losers_bp_saved) / 2,
+        "break_points_saved_pct": (
+            (winners_bp_saved / winners_bp_faced * 100 if winners_bp_faced > 0 else 0) + 
+            (losers_bp_saved / losers_bp_faced * 100 if losers_bp_faced > 0 else 0)
+        ) / 2
+    }
+    
+    return tour_averages
+
+def compare_player_to_tour_average(tournament_stats, tour_averages, player_name, tournament, year):
+
+    messages = []
+    
+    # Compare aces
+    player_aces = tournament_stats.get("Tournament Aces", 0)
+    if player_aces > tour_averages["aces"]:
+        messages.append(f"{player_name} served more aces than the {year} {tournament} average on tour "
+                       f"({player_aces:.1f} vs {tour_averages['aces']:.1f}).")
+    else:
+        messages.append(f"{player_name} served fewer aces than the {year} {tournament} average on tour "
+                       f"({player_aces:.1f} vs {tour_averages['aces']:.1f}).")
+    
+    # Compare double faults
+    player_dfs = tournament_stats.get("Tournament Double Faults", 0)
+    if player_dfs > tour_averages["double_faults"]:
+        messages.append(f"{player_name} had more double faults than the {year} {tournament} average on tour "
+                       f"({player_dfs:.1f} vs {tour_averages['double_faults']:.1f}).")
+    else:
+        messages.append(f"{player_name} had fewer double faults than the {year} {tournament} average on tour "
+                       f"({player_dfs:.1f} vs {tour_averages['double_faults']:.1f}).")
+    
+    # Compare break points saved
+    player_bp_saved_pct = tournament_stats.get("Break Points Saved Percentage", 0)
+    if player_bp_saved_pct > tour_averages["break_points_saved_pct"]:
+        messages.append(f"{player_name} saved more break points than the {year} {tournament} average on tour "
+                       f"({player_bp_saved_pct:.1f}% vs {tour_averages['break_points_saved_pct']:.1f}%).")
+    else:
+        messages.append(f"{player_name} saved fewer break points than the {year} {tournament} average on tour "
+                       f"({player_bp_saved_pct:.1f}% vs {tour_averages['break_points_saved_pct']:.1f}%).")
+    
+    return messages
+
+def display_tour_comparison(df, player_name, tournament, year, tournament_stats):
+
+    st.markdown("#### Player vs. Tour Averages")
+    
+    # Calculate tour averages
+    tour_averages = calculate_tour_averages(df, tournament)
+    
+    if not tour_averages:
+        st.warning(f"Could not calculate tour averages for {tournament} {year}.")
+        return
+    
+    # Compare player to tour averages
+    comparison_messages = compare_player_to_tour_average(
+        tournament_stats, 
+        tour_averages, 
+        player_name, 
+        tournament, 
+        year
+    )
+    
+    # Display comparison messages
+    for message in comparison_messages:
+        st.markdown(f"• {message}")
+    
+    # Create a metrics comparison table
+    comparison_data = {
+        "Metric": ["Aces", "Double Faults", "Break Points Saved"],
+        f"{player_name}": [
+            f"{tournament_stats.get('Tournament Aces', 0):.1f}",
+            f"{tournament_stats.get('Tournament Double Faults', 0):.1f}",
+            f"{tournament_stats.get('Break Points Saved Percentage', 0):.1f}%"
+        ],
+        f"Tour Average": [
+            f"{tour_averages['aces']:.1f}",
+            f"{tour_averages['double_faults']:.1f}",
+            f"{tour_averages['break_points_saved_pct']:.1f}%"
+        ]
+    }
+    
+    # Display as a dataframe
+    st.dataframe(pd.DataFrame(comparison_data), use_container_width=True)
+###################
+
+#############################
+# BIAS DETECTION #
+#############################
+
+
+# Will need to take in player average for tournament e.g double faults
+# Will need to take in all player average scores for the year/tournament
+#     E.g. tour average at wimbledon was 2.0 double faults
+#          Sinner only did one double fault
+#          Therefore in terms of double faults he is + 1 positive
+# Rate players on double faults, break points saved, aces
+# Total rating between -3 and 3
+# Rating represents statistically backed performance score
+# Compare with sentiment of a headline
+# If they equate then not bias
+
+
+
+def bias_detection():
+    return 0
+
 #############################
 # MAIN APPLICATION UI
 #############################
@@ -659,10 +792,31 @@ def main():
                     for i, (metric, value) in enumerate(yearly_detailed_metrics.items()):
                         yearly_metrics_grid[i % 2].metric(metric, value)
             
+            ##### ADDING SECTION FOR TOUR AVERAGES
+
+            # Tour comparison section
+            st.markdown("### Tour Average Comparison")
+            # If matches have been found and the tournament exists then calucate the averages for the tournament
+            if player_matches is not None and tournament_stats is not None:
+                display_tour_comparison(
+                    df, 
+                    player_name, 
+                    tournament, 
+                    year, 
+                    tournament_stats
+                )
+            else:
+                st.warning(f"Cannot compare with tour averages: No tournament data available for {player_name}.")
+
+            #############################
+
             # Integrated analysis section
             st.markdown("---")
-            st.markdown("### Media Sentiment vs. Performance Correlation")
+            st.markdown("### Media Sentiment vs. Player Performance")
             
+            # Decision of bias or not
+            # Bias if data and sentiment do not match
+
             # Get sentiment distribution
             positive_count = len(st.session_state.sentiment_results["Positive"])
             neutral_count = len(st.session_state.sentiment_results["Neutral"]) 
