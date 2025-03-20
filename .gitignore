@@ -5,7 +5,6 @@ __pycache__/
 
 # Ignore Excel files
 *.xlsx
-*.csv
 
 # Ignore model files in case of regeneration
 *.pkl
