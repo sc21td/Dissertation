@@ -270,8 +270,9 @@ def analyse_headlines_sentiment(headlines_df):
 
 def load_match_data(year):
     try:
-        # Specific year entered is now inputted
-        return pd.read_csv(f"atp_matches_{year}.csv")
+        # Takes in specific year to load up
+        file_path = f"C:/Users/tobyl/OneDrive/Documents/4th Year/Dissertation/Repository/Statistics/atp_matches_{year}.csv"
+        return pd.read_csv(file_path)
     except FileNotFoundError:
         st.error(f"ATP {year} match data file not found. Please ensure the CSV is in the correct directory.")
         return pd.DataFrame()
@@ -774,7 +775,7 @@ def main():
 
     with param_cols[1]:
         # Load match data to get player list
-        df = load_match_data()
+        df = load_match_data(year)
         if not df.empty:
             all_players = sorted(set(df["winner_name"].unique()) | set(df["loser_name"].unique()))
             player_name = st.selectbox("Select Player:", all_players)
@@ -900,7 +901,7 @@ def main():
         st.subheader("Player Performance Statistics")
         
         if st.session_state.player_stats is None:
-            df = load_match_data()
+            df = load_match_data(year)
             if not df.empty:
                 with st.spinner(f"Retrieving statistics for {player_name} at {tournament} {year}..."):
                     player_matches, tournament_stats = get_player_tournament_stats(df, player_name, tournament, year)
