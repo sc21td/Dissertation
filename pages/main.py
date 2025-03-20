@@ -268,11 +268,12 @@ def analyse_headlines_sentiment(headlines_df):
 # STATS RETRIEVAL FUNCTIONS
 #############################
 
-def load_match_data():
+def load_match_data(year):
     try:
-        return pd.read_csv("atp_matches_2022.csv")
+        # Specific year entered is now inputted
+        return pd.read_csv(f"atp_matches_{year}.csv")
     except FileNotFoundError:
-        st.error("ATP 2024 match data file not found. Please ensure the CSV is in the correct directory.")
+        st.error(f"ATP {year} match data file not found. Please ensure the CSV is in the correct directory.")
         return pd.DataFrame()
 
 def get_player_tournament_stats(df, player_name, tournament, year):
@@ -768,6 +769,10 @@ def main():
     param_cols = st.columns(4)
     
     with param_cols[0]:
+        # Will add more later
+        year = st.selectbox("Select Year:", list(range(2018, 2025)))
+
+    with param_cols[1]:
         # Load match data to get player list
         df = load_match_data()
         if not df.empty:
@@ -776,13 +781,9 @@ def main():
         else:
             player_name = st.text_input("Enter Player Name:")
     
-    with param_cols[1]:
+    with param_cols[2]:
         # Select specific tournament, currently limited to grand slams
         tournament = st.selectbox("Enter Tournament Name:", ['Wimbledon','US Open', 'Australian Open', 'French Open'])
-    
-    with param_cols[2]:
-        # Will add more later
-        year = st.selectbox("Select Year:", [2022])
     
     with param_cols[3]:
         max_pages = st.slider("Pages to Scrape:", 1, 5, 3)
