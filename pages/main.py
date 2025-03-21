@@ -9,6 +9,7 @@ import time
 from bs4 import BeautifulSoup
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import TfidfVectorizer
+import math
 
 # Configure page
 st.set_page_config(layout="wide", page_title="Tennis Analysis Dashboard")
@@ -26,7 +27,7 @@ if 'sentiment_results' not in st.session_state:
 if 'player_stats' not in st.session_state:
     st.session_state.player_stats = None
 if 'current_step' not in st.session_state:
-    # 1: Input, 2: Scraping, 3: Sentiment, 4: Stats
+    # 1: Inputting parameters, 2: Scraping, 3: Sentiment Analysis, 4: Stats Retrieval
     st.session_state.current_step = 1  
 
 # CSV file for storing irrelevant headlines
@@ -48,8 +49,6 @@ def load_ignored_headlines():
     logger.info(f"Ignored headlines file {IGNORE_CSV} not found")
     return set()
 
-ignored_headlines = load_ignored_headlines()
-
 # Function to save new irrelevant headlines to CSV
 def save_ignored_headlines(new_ignored):
     logger.info(f"Attempting to save {len(new_ignored) if new_ignored else 0} new ignored headlines")
@@ -67,7 +66,7 @@ def save_ignored_headlines(new_ignored):
     logger.info(f"Saved {len(new_ignored)} new ignored headlines")
 
 # Function to scrape BBC Sport headlines with URLs
-def scrape_bbc_sport(player, tournament, year, max_pages=3):
+def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
     # For more efficient searching on BBC news split the player name
     # Only append the surname to the URL
     player_surname = player.split()[-1] 
@@ -170,6 +169,7 @@ def scrape_bbc_sport(player, tournament, year, max_pages=3):
     logger.info(f"Found {len(duplicate_headlines)} duplicate headlines")
     
     # Update ignore list and remove duplicates
+    
     ignored_headlines.update(duplicate_headlines)
     save_ignored_headlines(duplicate_headlines)
     
@@ -277,7 +277,7 @@ def load_match_data(year):
         st.error(f"ATP {year} match data file not found. Please ensure the CSV is in the correct directory.")
         return pd.DataFrame()
 
-def get_player_tournament_stats(df, player_name, tournament, year):
+def get_player_tournament_stats(df, player_name, tournament):
     # Filter matches where player is winner in the tournament
     player_winner_matches = df[
         (df["winner_name"] == player_name) & 
@@ -296,7 +296,53 @@ def get_player_tournament_stats(df, player_name, tournament, year):
     # Return None if no matches found
     if player_matches.empty:
         return None, None
+    
+    # Check SEED
+    ####################
+    # Determine player's seed in the tournament
+    seed = None
+    if not player_winner_matches.empty and not pd.isna(player_winner_matches["winner_seed"].iloc[0]):
+        seed = player_winner_matches["winner_seed"].iloc[0]
+    elif not player_loser_matches.empty and not pd.isna(player_loser_matches["loser_seed"].iloc[0]):
+        seed = player_loser_matches["loser_seed"].iloc[0]
 
+    # If no seed is retrieved from the dataset then mark seed as 0
+    if seed is None:
+        seed = 0
+    # Determine the furthest round reached by the player
+    round_order = {
+        "R128": 1, "R64": 2, "R32": 3, "R16": 4,
+        "QF": 5, "SF": 6, "F": 7, "W": 8
+    }
+
+    # Initialise with the lowest round
+    furthest_round = "R128"
+    furthest_round_value = 1
+
+    # Special check for tournament winner (reached W)
+    if not player_winner_matches.empty and "F" in player_winner_matches["round"].values:
+        furthest_round = "W"
+        furthest_round_value = round_order["W"]
+    # Otherwise, check for runner-up
+    elif not player_loser_matches.empty and "F" in player_loser_matches["round"].values:
+        furthest_round = "F"
+        furthest_round_value = round_order["F"]
+    else:
+        # Check regular rounds for winners
+        if not player_winner_matches.empty:
+            for round_name in player_winner_matches["round"].unique():
+                if round_order.get(round_name, 0) > furthest_round_value:
+                    furthest_round = round_name
+                    furthest_round_value = round_order.get(round_name, 0)
+        
+        # Check regular rounds for losers
+        if not player_loser_matches.empty:
+            for round_name in player_loser_matches["round"].unique():
+                if round_order.get(round_name, 0) > furthest_round_value:
+                    furthest_round = round_name
+                    furthest_round_value = round_order.get(round_name, 0)
+    ####################
+    print("Debugging furthest round", furthest_round)
     # Compute tournament-specific statistics
     tournament_stats = {
         "Total Matches": len(player_matches),
@@ -304,6 +350,8 @@ def get_player_tournament_stats(df, player_name, tournament, year):
         "Losses": len(player_loser_matches),
         "Win Rate": len(player_winner_matches) / len(player_matches) * 100,
         "Avg Match Duration": player_matches["minutes"].mean(),
+        "Seed": seed,
+        "Round Reached": furthest_round,
         
         "Tournament Aces": player_matches[
             player_matches["winner_name"] == player_name
@@ -339,7 +387,7 @@ def get_player_tournament_stats(df, player_name, tournament, year):
 
     return player_matches, tournament_stats
 
-def get_player_yearly_stats(df, player_name, year):
+def get_player_yearly_stats(df, player_name):
     # Filter matches where player is winner
     player_winner_matches = df[df["winner_name"] == player_name]
     # Filter matches where player is loser
@@ -394,8 +442,9 @@ def get_player_yearly_stats(df, player_name, year):
 
     return yearly_stats
 
-####################
+#########################
 #TOURNAMENT AVERAGES COMPARISON
+#############################
 def calculate_tour_averages(df, tournament):
 
     # Filter matches for the specific tournament
@@ -471,6 +520,7 @@ def compare_player_to_tour_average(tournament_stats, tour_averages, player_name,
 def bias_detection(tournament_stats, tour_averages, sentiment_results):
    
     # Step 1: Calculate performance score based on comparison with tour averages
+    # Performance score also takes into account how far player progressed in tournament
     performance_points = 0
     performance_factors = []
     
@@ -506,9 +556,61 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
         performance_points -= 1
         performance_factors.append({"metric": "Break Points Saved %", "value": player_bp_saved_pct, 
                                    "tour_avg": tour_averages["break_points_saved_pct"], "score": -1})
-    
+        
+    # Progression in tournament compared to seed
+    ##########################################################
+    # Seed performance comparison
+    player_seed = tournament_stats.get("Seed", None)
+    print("Debugging: Player seed is:", player_seed)
+    tournament_round = tournament_stats.get("Round Reached", None)
+
+    # Only evaluate if we have both seed and round information
+    if player_seed is not None and tournament_round is not None:
+        # Convert tournament round to a numeric value
+        print("DEBUGGING: converting tournament round to numbers")
+        round_values = {
+            "R128": 1, "R64": 2, "R32": 3, "R16": 4,
+            "QF": 5, "SF": 6, "F": 7, "W": 8
+        }
+        
+        round_numeric = round_values.get(tournament_round, 0)
+        
+        # Calculate expected round based on seed
+        # log2(seed) gives roughly the round a player should reach
+        # E.g., seed 1 should reach finals (round 7), seed 8 should reach QF (round 5)
+        if player_seed > 0:
+            print("Debugging: Player seed is above 0")
+            expected_round = max(1, 8 - math.floor(math.log2(player_seed)))
+        else:
+            # Unseeded players (below 32 seed, qualifiers, wildcards)
+            # Expected to reach R64
+            # Could change to lose first round?
+            print("Debugging: Player is unseeded")
+            expected_round = 2  
+        
+        # Compare actual vs expected performance
+        if round_numeric >= expected_round:
+            print("Debugging: Player exceeded their expected round")
+            performance_points += 1
+            performance_factors.append({"metric": "Seed Performance", "value": f"Seed {player_seed} reached {tournament_round}", 
+                                "tour_avg": f"Expected round {expected_round}", "score": 1})
+        elif round_numeric == expected_round:
+            print("Debugging: Player reached their expected round")
+            performance_points += 0.5
+            performance_factors.append({"metric": "Seed Performance", "value": f"Seed {player_seed} reached {tournament_round}", 
+                                "tour_avg": f"Expected round {expected_round}", "score": 1})
+        else:
+            print("Player did not reach their expected round")
+            performance_points -= 1
+            performance_factors.append({"metric": "Seed Performance", "value": f"Seed {player_seed} reached {tournament_round}", 
+                                "tour_avg": f"Expected round {expected_round}", "score": -1})
+
+    #######################################################
+
     # Normalise performance score between -1 and 1
-    max_points = 3  # We have 3 metrics
+    # 4 metrics to rank players off
+    max_points = 4 
+    #max_points = 3 
     normalised_performance_score = performance_points / max_points
     
     # Step 2: Calculate sentiment score
@@ -629,6 +731,17 @@ def display_bias_analysis(tournament_stats, tour_averages, sentiment_results, pl
         else:
             st.markdown(f"➖ {player_name}'s performance at {tournament} {year} was **about average** compared to tour standards.")
         
+        ########### SEED COMPARISON to performance
+        # Add seed performance insight
+        for factor in bias_results["performance_factors"]:
+            if factor["metric"] == "Seed Performance":
+                if factor["score"] > 0:
+                    st.markdown(f"🔼 Based on their seed, {player_name} **progressed further** than expected in the tournament.")
+                else:
+                    st.markdown(f"🔽 Based on their seed, {player_name} **progressed less far** than expected in the tournament.")
+
+        ##########################
+        
         # Display performance factors in a table
         st.markdown("#### Performance Metrics Breakdown")
         performance_data = {
@@ -640,9 +753,20 @@ def display_bias_analysis(tournament_stats, tour_averages, sentiment_results, pl
         
         for factor in bias_results["performance_factors"]:
             performance_data["Metric"].append(factor["metric"])
-            performance_data[f"{player_name}"].append(f"{factor['value']:.1f}")
-            performance_data["Tour Average"].append(f"{factor['tour_avg']:.1f}")
-            
+           
+           # For the player's value
+           # Check if value is number/float befor applying float formatting
+            if isinstance(factor['value'], (int, float)):
+                performance_data[f"{player_name}"].append(f"{factor['value']:.1f}")
+            else:
+                performance_data[f"{player_name}"].append(f"{factor['value']}")
+
+            # For the tour average
+            if isinstance(factor['tour_avg'], (int, float)):
+                performance_data["Tour Average"].append(f"{factor['tour_avg']:.1f}")
+            else:
+                performance_data["Tour Average"].append(f"{factor['tour_avg']}")
+                        
             score_text = "+1" if factor["score"] > 0 else "-1"
             score_color = "green" if factor["score"] > 0 else "red"
             performance_data["Score"].append(f"<span style='color:{score_color}'>{score_text}</span>")
@@ -803,10 +927,10 @@ def main():
     # Web scraping section
     if st.session_state.current_step >= 2:
         st.subheader("Headline Scraping")
-        
+        ignored_headlines = load_ignored_headlines()
         if st.session_state.scraped_headlines is None:
             with st.spinner(f"Scraping headlines for {player_name} at {tournament} {year}..."):
-                scraped_df = scrape_bbc_sport(player_name, tournament, year, max_pages)
+                scraped_df = scrape_bbc_sport(player_name, tournament, year, max_pages, ignored_headlines)
                 st.session_state.scraped_headlines = scraped_df
         
         if not st.session_state.scraped_headlines.empty:
@@ -904,8 +1028,8 @@ def main():
             df = load_match_data(year)
             if not df.empty:
                 with st.spinner(f"Retrieving statistics for {player_name} at {tournament} {year}..."):
-                    player_matches, tournament_stats = get_player_tournament_stats(df, player_name, tournament, year)
-                    yearly_stats = get_player_yearly_stats(df, player_name, year)
+                    player_matches, tournament_stats = get_player_tournament_stats(df, player_name, tournament)
+                    yearly_stats = get_player_yearly_stats(df, player_name)
                     st.session_state.player_stats = {
                         "player_matches": player_matches,
                         "tournament_stats": tournament_stats,
