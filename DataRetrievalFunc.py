@@ -216,37 +216,3 @@ def calculate_tour_averages(df, tournament):
     
     return tour_averages
 
-
-# Not currently called
-# def compare_player_to_tour_average(tournament_stats, tour_averages, player_name, tournament, year):
-
-#     messages = []
-    
-#     # Compare aces
-#     player_aces = tournament_stats.get("Tournament Aces", 0)
-#     if player_aces > tour_averages["aces"]:
-#         messages.append(f"{player_name} served more aces than the {year} {tournament} average on tour "
-#                        f"({player_aces:.1f} vs {tour_averages['aces']:.1f}).")
-#     else:
-#         messages.append(f"{player_name} served fewer aces than the {year} {tournament} average on tour "
-#                        f"({player_aces:.1f} vs {tour_averages['aces']:.1f}).")
-    
-#     # Compare double faults
-#     player_dfs = tournament_stats.get("Tournament Double Faults", 0)
-#     if player_dfs > tour_averages["double_faults"]:
-#         messages.append(f"{player_name} had more double faults than the {year} {tournament} average on tour "
-#                        f"({player_dfs:.1f} vs {tour_averages['double_faults']:.1f}).")
-#     else:
-#         messages.append(f"{player_name} had fewer double faults than the {year} {tournament} average on tour "
-#                        f"({player_dfs:.1f} vs {tour_averages['double_faults']:.1f}).")
-    
-#     # Compare break points saved
-#     player_bp_saved_pct = tournament_stats.get("Break Points Saved Percentage", 0)
-#     if player_bp_saved_pct > tour_averages["break_points_saved_pct"]:
-#         messages.append(f"{player_name} saved more break points than the {year} {tournament} average on tour "
-#                        f"({player_bp_saved_pct:.1f}% vs {tour_averages['break_points_saved_pct']:.1f}%).")
-#     else:
-#         messages.append(f"{player_name} saved fewer break points than the {year} {tournament} average on tour "
-#                        f"({player_bp_saved_pct:.1f}% vs {tour_averages['break_points_saved_pct']:.1f}%).")
-    
-#     return messages
