@@ -189,7 +189,14 @@ def display_bias_analysis(tournament_stats, tour_averages, sentiment_results, pl
         - Player's double faults > tour average: -1 point
         - Player's break points saved % > tour average: +1 point
         - Player's break points saved % < tour average: -1 point
-        
+                    
+        The players seed going into the tournament along with the round they reached is also taken into account. 
+        For example if an unseeded player makes it into the final this is more impressive than if the 1st seed won the tournament.
+        If the performance:
+                    - Exceeds the expected round reached: +1 point
+                    - Matches the expected round reached: +0.5 points
+                    - Is worse than the expected round reached: -1 point
+                    
         The total performance score is normalised to a scale from -1 (significantly below average) 
         to +1 (significantly above average), with 0 representing average performance.
         
