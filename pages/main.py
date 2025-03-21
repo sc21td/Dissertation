@@ -64,6 +64,11 @@ def main():
     with param_cols[2]:
         # Select specific tournament, currently limited to grand slams
         tournament = st.selectbox("Enter Tournament Name:", ['Wimbledon','US Open', 'Australian Open', 'French Open'])
+        # Conversion to match names within stats files
+        if tournament == "French Open":
+            tournament = 'Roland Garros'
+        if tournament == "US Open":
+            tournament = 'Us Open'
     
     with param_cols[3]:
         max_pages = st.slider("Pages to Scrape:", 1, 5, 3)
