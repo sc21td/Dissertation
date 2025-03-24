@@ -60,9 +60,14 @@ def main():
         # This way dropdown only allows selection of players who there is data on 
         df = load_match_data(year)
         if not df.empty:
-            # Each unique player name from winner and loser names are retrieved
-            all_players = sorted(set(df["winner_name"].unique()) | set(df["loser_name"].unique()))
-            player_name = st.selectbox("Select Player:", all_players)
+            # Filter to only include Grand Slam tournaments
+            # G is the code for grand slam tournament
+            grand_slam_df = df[df['tourney_level'] == 'G']  
+        
+            # Get only players who played in Grand Slams
+            gs_players = sorted(set(grand_slam_df["winner_name"].unique()) | set(grand_slam_df["loser_name"].unique()))
+        
+            player_name = st.selectbox("Select Player:", gs_players)
         else:
             # If there is no data for player names manual entry is allowed
             # This should never happen 

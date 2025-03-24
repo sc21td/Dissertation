@@ -77,27 +77,30 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
             print("Debugging: Player is unseeded")
             expected_round = 2  
         
+        # Converting back to round name
+        # Create reverse mapping pf round values to get the name from the round number
+        round_names = {value: key for key, value in round_values.items()}
+        expected_round_name = round_names.get(expected_round, str(expected_round))
         # Compare actual vs expected performance
         if round_numeric >= expected_round:
             print("Debugging: Player exceeded their expected round")
             performance_points += 1
             performance_factors.append({"metric": "Seed Performance", "value": f"Seed {player_seed} reached {tournament_round}", 
-                                "tour_avg": f"Expected round {expected_round}", "score": 1})
+                                "tour_avg": f"Expected round {expected_round_name}", "score": 1})
         elif round_numeric == expected_round:
             print("Debugging: Player reached their expected round")
             performance_points += 0.5
             performance_factors.append({"metric": "Seed Performance", "value": f"Seed {player_seed} reached {tournament_round}", 
-                                "tour_avg": f"Expected round {expected_round}", "score": 1})
+                                "tour_avg": f"Expected round {expected_round_name}", "score": 1})
         else:
             print("Player did not reach their expected round")
             performance_points -= 1
             performance_factors.append({"metric": "Seed Performance", "value": f"Seed {player_seed} reached {tournament_round}", 
-                                "tour_avg": f"Expected round {expected_round}", "score": -1})
+                                "tour_avg": f"Expected round {expected_round_name}", "score": -1})
 
     # Normalise performance score between -1 and 1
     # 4 metrics to rank players off
     max_points = 4 
-    #max_points = 3 
     normalised_performance_score = performance_points / max_points
     
     # Step 2: Calculate sentiment score as difference of positive sum and negative sum over sum of headlines
