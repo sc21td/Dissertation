@@ -60,13 +60,7 @@ def shuffle_and_split_dataset(file_path, sheet_name="Dataset", train_size=0.9, t
     # Ensure train/test split sums to 1
     assert train_size + test_size == 1, "Train and test sizes must sum to 1."
 
-    # Split dataset into training (80%) and temp (20%)
     # Stratify command ensures that Labelled Rating is equally split for each section which hopefully reduces overfitting
-    #train_df, temp_df = train_test_split(df, test_size=(1 - train_size), random_state=random_state, stratify=df["Labelled Rating"])
-    
-    # Split temp into validation (10%) and test (10%)
-    #val_df, test_df = train_test_split(temp_df, test_size=(test_size / (val_size + test_size)), random_state=random_state, stratify=temp_df["Labelled Rating"])
-
     # Split into 80/20 split
     #train_df, test_df = train_test_split(df, test_size=(1 - train_size), random_state=random_state, stratify=df["Labelled Rating"])
     
@@ -95,11 +89,11 @@ def apply_vader(df, text_column="Statement"):
     - df (pd.DataFrame): DataFrame with added VADER sentiment score columns.
     """
     # Initialise VADER
-    analyzer = SentimentIntensityAnalyzer()
+    analyser = SentimentIntensityAnalyzer()
 
     # Function to get VADER scores
     def get_vader_scores(text):
-        scores = analyzer.polarity_scores(text)
+        scores = analyser.polarity_scores(text)
         return pd.Series([scores['pos'], scores['neg'], scores['neu'], scores['compound']])
 
     # Apply VADER to the dataset
@@ -118,7 +112,7 @@ def apply_tfidf(df, text_column="Statement", max_features=500):
 
     Returns:
     - tfidf_df (pd.DataFrame): DataFrame containing TF-IDF features.
-    - vectorizer (TfidfVectorizer): Fitted TF-IDF vectorizer for future transformations.
+    - vectoriser (TfidfVectoriser): Fitted TF-IDF vectoriser for future transformations.
     """
     # Initialise TF-IDF vectoriser
     vectoriser = TfidfVectorizer(max_features=max_features)
