@@ -34,10 +34,9 @@ def get_player_tournament_stats(df, player_name, tournament):
     if player_matches.empty:
         return None, None
     
-    # Check SEED
-    ####################
     # Determine player's seed in the tournament
     seed = None
+    # USing iloc to select the first row of player winner matches
     if not player_winner_matches.empty and not pd.isna(player_winner_matches["winner_seed"].iloc[0]):
         seed = player_winner_matches["winner_seed"].iloc[0]
     elif not player_loser_matches.empty and not pd.isna(player_loser_matches["loser_seed"].iloc[0]):
@@ -78,7 +77,7 @@ def get_player_tournament_stats(df, player_name, tournament):
                 if round_order.get(round_name, 0) > furthest_round_value:
                     furthest_round = round_name
                     furthest_round_value = round_order.get(round_name, 0)
-    ####################
+
     print("Debugging furthest round", furthest_round)
     # Compute tournament-specific statistics
     tournament_stats = {
@@ -90,35 +89,29 @@ def get_player_tournament_stats(df, player_name, tournament):
         "Seed": seed,
         "Round Reached": furthest_round,
         
+        # Both matches where teh selcted player won and lost are retrieved
         "Tournament Aces": player_matches[
-            player_matches["winner_name"] == player_name
-        ]["w_ace"].mean() if not player_winner_matches.empty else player_matches[
-            player_matches["loser_name"] == player_name
-        ]["l_ace"].mean(),
+            player_matches["winner_name"] == player_name]["w_ace"].mean() 
+            if not player_winner_matches.empty 
+            else player_matches[player_matches["loser_name"] == player_name]["l_ace"].mean(),
         
         "Tournament Double Faults": player_matches[
-            player_matches["winner_name"] == player_name
-        ]["w_df"].mean() if not player_winner_matches.empty else player_matches[
-            player_matches["loser_name"] == player_name
-        ]["l_df"].mean(),
+            player_matches["winner_name"] == player_name]["w_df"].mean()
+            if not player_winner_matches.empty 
+            else player_matches[player_matches["loser_name"] == player_name]["l_df"].mean(),
         
         "Break Points Faced": player_matches[
-            player_matches["winner_name"] == player_name
-        ]["w_bpFaced"].mean() if not player_winner_matches.empty else player_matches[
-            player_matches["loser_name"] == player_name
-        ]["l_bpFaced"].mean(),
+            player_matches["winner_name"] == player_name]["w_bpFaced"].mean() 
+            if not player_winner_matches.empty 
+            else player_matches[player_matches["loser_name"] == player_name]["l_bpFaced"].mean(),
         
+        # Calculated by dividing amount of break points saved by amount of break points faced
         "Break Points Saved Percentage": (
-            (player_matches[
-                player_matches["winner_name"] == player_name
-            ]["w_bpSaved"].mean() / player_matches[
-                player_matches["winner_name"] == player_name
-            ]["w_bpFaced"].mean() * 100) if not player_winner_matches.empty 
-            else (player_matches[
-                player_matches["loser_name"] == player_name
-            ]["l_bpSaved"].mean() / player_matches[
-                player_matches["loser_name"] == player_name
-            ]["l_bpFaced"].mean() * 100)
+            (player_matches[player_matches["winner_name"] == player_name]["w_bpSaved"].mean() 
+            / player_matches[player_matches["winner_name"] == player_name]["w_bpFaced"].mean() * 100) 
+            if not player_winner_matches.empty 
+            else (player_matches[player_matches["loser_name"] == player_name]["l_bpSaved"].mean()
+            / player_matches[player_matches["loser_name"] == player_name]["l_bpFaced"].mean() * 100)
         )
     }
 
@@ -146,34 +139,26 @@ def get_player_yearly_stats(df, player_name):
         "Avg Match Duration": player_matches["minutes"].mean(),
         
         "Yearly Aces": player_matches[
-            player_matches["winner_name"] == player_name
-        ]["w_ace"].mean() if not player_winner_matches.empty else player_matches[
-            player_matches["loser_name"] == player_name
-        ]["l_ace"].mean(),
+            player_matches["winner_name"] == player_name]["w_ace"].mean() 
+            if not player_winner_matches.empty 
+            else player_matches[player_matches["loser_name"] == player_name]["l_ace"].mean(),
         
         "Yearly Double Faults": player_matches[
-            player_matches["winner_name"] == player_name
-        ]["w_df"].mean() if not player_winner_matches.empty else player_matches[
-            player_matches["loser_name"] == player_name
-        ]["l_df"].mean(),
+            player_matches["winner_name"] == player_name]["w_df"].mean() 
+            if not player_winner_matches.empty 
+            else player_matches[player_matches["loser_name"] == player_name]["l_df"].mean(),
         
         "Break Points Faced": player_matches[
-            player_matches["winner_name"] == player_name
-        ]["w_bpFaced"].mean() if not player_winner_matches.empty else player_matches[
-            player_matches["loser_name"] == player_name
-        ]["l_bpFaced"].mean(),
+            player_matches["winner_name"] == player_name]["w_bpFaced"].mean()
+            if not player_winner_matches.empty 
+            else player_matches[player_matches["loser_name"] == player_name]["l_bpFaced"].mean(),
         
         "Break Points Saved Percentage": (
-            (player_matches[
-                player_matches["winner_name"] == player_name
-            ]["w_bpSaved"].mean() / player_matches[
-                player_matches["winner_name"] == player_name
-            ]["w_bpFaced"].mean() * 100) if not player_winner_matches.empty 
-            else (player_matches[
-                player_matches["loser_name"] == player_name
-            ]["l_bpSaved"].mean() / player_matches[
-                player_matches["loser_name"] == player_name
-            ]["l_bpFaced"].mean() * 100)
+            (player_matches[player_matches["winner_name"] == player_name]["w_bpSaved"].mean()
+            / player_matches[player_matches["winner_name"] == player_name]["w_bpFaced"].mean() * 100) 
+            if not player_winner_matches.empty 
+            else (player_matches[player_matches["loser_name"] == player_name]["l_bpSaved"].mean() 
+            / player_matches[player_matches["loser_name"] == player_name]["l_bpFaced"].mean() * 100)
         )
     }
 

@@ -47,13 +47,11 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
                                    "tour_avg": tour_averages["break_points_saved_pct"], "score": -1})
         
     # Progression in tournament compared to seed
-    ##########################################################
-    # Seed performance comparison
     player_seed = tournament_stats.get("Seed", None)
     print("Debugging: Player seed is:", player_seed)
     tournament_round = tournament_stats.get("Round Reached", None)
 
-    # Only evaluate if we have both seed and round information
+    # Only evaluate if theres is both seed and round information
     if player_seed is not None and tournament_round is not None:
         # Convert tournament round to a numeric value
         print("DEBUGGING: converting tournament round to numbers")
@@ -66,7 +64,9 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
         
         # Calculate expected round based on seed
         # log2(seed) gives roughly the round a player should reach
-        # E.g., seed 1 should reach finals (round 7), seed 8 should reach QF (round 5)
+        # E.g., seed 2 should reach finals (round 7)
+        # Log2(2) = 1 , expected round = 8-1 = 7
+        # Therefore expected round is 7 or finals
         if player_seed > 0:
             print("Debugging: Player seed is above 0")
             expected_round = max(1, 8 - math.floor(math.log2(player_seed)))
@@ -94,15 +94,13 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
             performance_factors.append({"metric": "Seed Performance", "value": f"Seed {player_seed} reached {tournament_round}", 
                                 "tour_avg": f"Expected round {expected_round}", "score": -1})
 
-    #######################################################
-
     # Normalise performance score between -1 and 1
     # 4 metrics to rank players off
     max_points = 4 
     #max_points = 3 
     normalised_performance_score = performance_points / max_points
     
-    # Step 2: Calculate sentiment score
+    # Step 2: Calculate sentiment score as difference of positive sum and negative sum over sum of headlines
     positive_count = len(sentiment_results["Positive"])
     negative_count = len(sentiment_results["Negative"])
     total_sentiment = positive_count + negative_count
@@ -227,7 +225,7 @@ def display_bias_analysis(tournament_stats, tour_averages, sentiment_results, pl
         else:
             st.markdown(f"➖ {player_name}'s performance at {tournament} {year} was **about average** compared to tour standards.")
         
-        ########### SEED COMPARISON to performance
+        # SEED COMPARISON to performance
         # Add seed performance insight
         for factor in bias_results["performance_factors"]:
             if factor["metric"] == "Seed Performance":
@@ -235,8 +233,6 @@ def display_bias_analysis(tournament_stats, tour_averages, sentiment_results, pl
                     st.markdown(f"🔼 Based on their seed, {player_name} **progressed further** than expected in the tournament.")
                 else:
                     st.markdown(f"🔽 Based on their seed, {player_name} **progressed less far** than expected in the tournament.")
-
-        ##########################
         
         # Display performance factors in a table
         st.markdown("#### Performance Metrics Breakdown")

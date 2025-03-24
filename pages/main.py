@@ -30,6 +30,8 @@ def main():
     # Create progress indicator for the workflow
     progress_cols = st.columns(4)
     with progress_cols[0]:
+        # Ticks are used to display progress
+        # Hourglasses are used if the step is being processed
         param_status = "✅" if st.session_state.current_step > 1 else "⏳"
         st.markdown(f"### {param_status} 1. Select Parameters")
     with progress_cols[1]:
@@ -46,19 +48,24 @@ def main():
     
     # Parameter selection section
     st.subheader("Analysis Parameters")
+    # 4 columns are used for the 4 parameters required
     param_cols = st.columns(4)
     
     with param_cols[0]:
-        # Will add more later
+        # Will add more later but currently have data for 2018 to 2024
         year = st.selectbox("Select Year:", list(range(2018, 2025)))
 
     with param_cols[1]:
-        # Load match data to get player list
+        # Load match data to get player list for selection
+        # This way dropdown only allows selection of players who there is data on 
         df = load_match_data(year)
         if not df.empty:
+            # Each unique player name from winner and loser names are retrieved
             all_players = sorted(set(df["winner_name"].unique()) | set(df["loser_name"].unique()))
             player_name = st.selectbox("Select Player:", all_players)
         else:
+            # If there is no data for player names manual entry is allowed
+            # This should never happen 
             player_name = st.text_input("Enter Player Name:")
     
     with param_cols[2]:
@@ -71,39 +78,47 @@ def main():
             tournament = 'Us Open'
     
     with param_cols[3]:
+        # Can select between 1 and 5 pages 
         max_pages = st.slider("Pages to Scrape:", 1, 5, 3)
     
-    # Main action button
+    # Button to start webscraping based on selected parameters
     if st.button("Start Analysis"):
         # Move to scraping step
+        # All session state data is reset
         st.session_state.current_step = 2  
         st.session_state.scraped_headlines = None
         st.session_state.sentiment_results = {"Positive": [], "Neutral": [], "Negative": []}
         st.session_state.player_stats = None
+        # App is rerun to purge previous processes
         st.rerun()
     
     st.markdown("---")
     
-    # Web scraping section
+    # Web scraping section 
     if st.session_state.current_step >= 2:
         st.subheader("Headline Scraping")
+        # Previously ignored headlines are loaded to avoid rescraping them
         ignored_headlines = load_ignored_headlines()
         if st.session_state.scraped_headlines is None:
+            # Spinner shown while scraping occurs
             with st.spinner(f"Scraping headlines for {player_name} at {tournament} {year}..."):
+                # Data frame of scraped results are stored in session state
                 scraped_df = scrape_bbc_sport(player_name, tournament, year, max_pages, ignored_headlines)
                 st.session_state.scraped_headlines = scraped_df
         
         if not st.session_state.scraped_headlines.empty:
             st.success(f"Found {len(st.session_state.scraped_headlines)} relevant headlines")
             
-            # Show headlines in an expander
+            # Show headlines in an expander as unsure how many headlines are returned
             with st.expander("View Scraped Headlines", expanded=True):
+                # Each headline is looped through and are added to a column with an ignore button next to each one
                 for i, row in st.session_state.scraped_headlines.iterrows():
                     col1, col2 = st.columns([4, 1])
                     headline = row["Headline"]
                     url = row["URL"]
                     
                     with col1:
+                        # If url has been scraped along with headline, make the headline a link
                         if url:
                             st.markdown(f"[{headline}]({url})")
                         else:
@@ -111,12 +126,13 @@ def main():
                     
                     with col2:
                         if st.button(f"Ignore", key=f"ignore_{i}"):
-                            # Add to ignored headlines
+                            # Add to ignored headlines if click to ignore a headline
+                            # Tjere are then added to ignored headlines csv
                             ignored_headlines.add(headline)
                             save_ignored_headlines([headline])
                             st.success(f"Marked '{headline}' as irrelevant")
                             
-                            # Remove from current results
+                            # Remove from current results and refresh the app
                             st.session_state.scraped_headlines = st.session_state.scraped_headlines[
                                 st.session_state.scraped_headlines["Headline"] != headline
                             ]
@@ -139,11 +155,12 @@ def main():
         # Only run analysis if haven't already
         if all(len(results) == 0 for results in st.session_state.sentiment_results.values()):
             with st.spinner("Analysing headline sentiment..."):
+                # Sentiment analysis function ran and session state stores the results
                 sentiment_results, updated_headlines = analyse_headlines_sentiment(st.session_state.scraped_headlines)
                 st.session_state.sentiment_results = sentiment_results
                 st.session_state.scraped_headlines = updated_headlines
         
-        # Display results in three columns
+        # Display results in three columns, positive (tick), neutral (dash), negative (cross)
         sentiment_cols = st.columns(3)
         
         with sentiment_cols[0]:
@@ -168,6 +185,7 @@ def main():
             st.markdown("### Sentiment Distribution")
             dist_cols = st.columns(3)
             
+            # Show count of positive neutral and negative headlines in 3 columns
             for i, (sentiment, headlines) in enumerate(st.session_state.sentiment_results.items()):
                 dist_cols[i].metric(
                     label=sentiment, 
@@ -184,12 +202,14 @@ def main():
         st.markdown("---")
         st.subheader("Player Performance Statistics")
         
+        # Retrieve stats if not already done
         if st.session_state.player_stats is None:
             df = load_match_data(year)
             if not df.empty:
                 with st.spinner(f"Retrieving statistics for {player_name} at {tournament} {year}..."):
                     player_matches, tournament_stats = get_player_tournament_stats(df, player_name, tournament)
                     yearly_stats = get_player_yearly_stats(df, player_name)
+                    # All stats are stored in session state
                     st.session_state.player_stats = {
                         "player_matches": player_matches,
                         "tournament_stats": tournament_stats,
@@ -293,13 +313,9 @@ def main():
                         yearly_metrics_grid[i % 2].metric(metric, value)
             
             
-
             # Bias decision section
             st.markdown("---")
             st.markdown("### Media Sentiment vs. Player Performance")
-            
-            # Decision of bias or not
-            # Bias if data and sentiment do not match
 
             # Get sentiment distribution
             positive_count = len(st.session_state.sentiment_results["Positive"])
