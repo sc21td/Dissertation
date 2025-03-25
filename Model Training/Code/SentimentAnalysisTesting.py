@@ -16,7 +16,7 @@ from lazypredict.Supervised import LazyClassifier
 df = pd.read_excel("DatasetTesting.xlsx", sheet_name="Dataset")
 
 # Shuffle and split data into 80/20 split as before
-train_df, test_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df["Labelled Rating"])
+train_df, test_df = train_test_split(df, test_size=0.3, random_state=42, stratify=df["Labelled Rating"])
 
 # Extract text and labels
 X_train, y_train = train_df["Statement"], train_df["Labelled Rating"]
@@ -33,7 +33,7 @@ def extract_tfidf_features(train_texts, test_texts):
     # Test 3
     #vectoriser = TfidfVectorizer(ngram_range=(1, 2), stop_words='english') 
     # Uni grams
-    vectoriser = TfidfVectorizer(ngram_range=(1,1)) 
+    vectoriser = TfidfVectorizer(ngram_range=(1,1), max_features= 750) 
     # Adjust max features
     #vectoriser = TfidfVectorizer(max_features=max_features)
     X_train_tfidf = vectoriser.fit_transform(train_texts)
@@ -48,7 +48,7 @@ def plot_confusion_matrix(y_true, y_pred, labels):
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
     plt.title("Confusion Matrix")
-    plt.savefig("Confusion Matrix Test 2")
+    plt.savefig("Confusion Matrix Test 8")
     plt.show()
 
 # Test Case 1: VADER-Only Model
@@ -64,20 +64,20 @@ X_test_vader = extract_vader_scores(X_test)
 X_train_tfidf, X_test_tfidf, vectoriser = extract_tfidf_features(X_train, X_test)
 X_train_combined = np.hstack((X_train_vader, X_train_tfidf.toarray()))
 X_test_combined = np.hstack((X_test_vader, X_test_tfidf.toarray()))
-model_combined = LogisticRegression(max_iter=1000)
-model_combined.fit(X_train_combined, y_train)
-y_pred_combined = model_combined.predict(X_test_combined)
-print("VADER + TF-IDF Model Performance. Unigram, Max iterations = 1000, Stopwords present:")
-print(classification_report(y_test, y_pred_combined))
+# model_combined = LogisticRegression(max_iter=1000)
+# model_combined.fit(X_train_combined, y_train)
+# y_pred_combined = model_combined.predict(X_test_combined)
+# print("Optimum combo with Max features = 500")
+# print(classification_report(y_test, y_pred_combined))
 
 # Test Case 3: Hyperparameter Optimisation (n-grams & stop words handled in extract_tfidf_features function)
 # Already applied bi-grams & stop-word removal above
 
 # Test Case 4: LazyPredict to find the best classifier
-# clf = LazyClassifier(verbose=0, ignore_warnings=True, custom_metric=None)
-# models, predictions = clf.fit(X_train_combined, X_test_combined, y_train, y_test)
-# print("LazyPredict Classifier Results:")
-# print(models)
+clf = LazyClassifier(verbose=0, ignore_warnings=True, custom_metric=None)
+models, predictions = clf.fit(X_train_combined, X_test_combined, y_train, y_test)
+print("LazyPredict Classifier Results:")
+print(models)
 
-unique_classes = sorted(y_test.unique())
-plot_confusion_matrix(y_test, y_pred_combined, unique_classes) 
+# unique_classes = sorted(y_test.unique())
+# plot_confusion_matrix(y_test, y_pred_combined, unique_classes) 
