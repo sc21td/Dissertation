@@ -62,7 +62,7 @@ def sentiment_scores(sentence):
 
 ###################################
 
-def analyze_player_sentiment(sentence, winner, loser):
+def analyse_player_sentiment(sentence, winner, loser):
     # Get sentiment score for the whole sentence
     analyzer = SentimentIntensityAnalyzer()
     scores = analyzer.polarity_scores(sentence)
@@ -77,9 +77,9 @@ def analyze_player_sentiment(sentence, winner, loser):
     print(f"{loser}: {loser_score} (Negative)")
 
 # Example usage
-# analyze_player_sentiment("Sinner makes light work of Eubanks in Paris opener", "Sinner", "Eubanks")
-# analyze_player_sentiment("Djokovic thrashes Medvedev in straight sets", "Djokovic", "Medvedev")
-# analyze_player_sentiment("Rafael Nadal crashes out of the US Open", "Nadal", "Unknown")
+# analyse_player_sentiment("Sinner makes light work of Eubanks in Paris opener", "Sinner", "Eubanks")
+# analyse_player_sentiment("Djokovic thrashes Medvedev in straight sets", "Djokovic", "Medvedev")
+# analyse_player_sentiment("Rafael Nadal crashes out of the US Open", "Nadal", "Unknown")
 
 # Main
 if __name__ == "__main__" :
@@ -89,7 +89,7 @@ if __name__ == "__main__" :
     print("\n" + sentence)
     winner = "Sinner"
     loser = "Eubanks"
-    #analyze_player_sentiment(sentence, winner, loser)
+    #analyse_player_sentiment(sentence, winner, loser)
     sentiment_scores(sentence)
 
     print("\n Mixed test:")
@@ -97,7 +97,7 @@ if __name__ == "__main__" :
     print("\n" + sentence)
     winner = "Djokovic"
     loser = ""
-    #analyze_player_sentiment(sentence, winner, loser)
+    #analyse_player_sentiment(sentence, winner, loser)
     sentiment_scores(sentence)
 
     print("\n Negative test:")
@@ -105,5 +105,5 @@ if __name__ == "__main__" :
     print("\n" + sentence)
     winner = ""
     loser = "Rafa Nadal"
-    #analyze_player_sentiment(sentence, winner, loser)
+    #analyse_player_sentiment(sentence, winner, loser)
     sentiment_scores(sentence)
