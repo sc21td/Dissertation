@@ -20,22 +20,22 @@ IGNORE_CSV = "irrelevant_headlines.csv"
 
 # Load existing ignored headlines from CSV
 def load_ignored_headlines():
-    logger.info("Attempting to load ignored headlines from CSV")
+    #logger.info("Attempting to load ignored headlines from CSV")
     
     if os.path.exists(IGNORE_CSV):
         headlines = set(pd.read_csv(IGNORE_CSV)["Headline"])
-        logger.info(f"Loaded {len(headlines)} ignored headlines from CSV")
+        #logger.info(f"Loaded {len(headlines)} ignored headlines from CSV")
         return headlines
     
-    logger.info(f"Ignored headlines file {IGNORE_CSV} not found")
+   # logger.info(f"Ignored headlines file {IGNORE_CSV} not found")
     return set()
 
 # Function to save new irrelevant headlines to CSV
 def save_ignored_headlines(new_ignored):
-    logger.info(f"Attempting to save {len(new_ignored) if new_ignored else 0} new ignored headlines")
+   # logger.info(f"Attempting to save {len(new_ignored) if new_ignored else 0} new ignored headlines")
     
     if not new_ignored:
-        logger.info("No new headlines to save")
+       # logger.info("No new headlines to save")
         return
 
     # Append to CSV file
@@ -44,7 +44,7 @@ def save_ignored_headlines(new_ignored):
         for headline in new_ignored:
             writer.writerow([headline])
     
-    logger.info(f"Saved {len(new_ignored)} new ignored headlines")
+   # logger.info(f"Saved {len(new_ignored)} new ignored headlines")
 
 # Function to scrape BBC Sport headlines with URLs
 def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
@@ -58,18 +58,18 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
     # Storing all headlines to find duplicates
     all_headlines = []
 
-    logger.info(f"Starting scrape with query: {search_query}, max_pages: {max_pages}")
+    #logger.info(f"Starting scrape with query: {search_query}, max_pages: {max_pages}")
 
     # Loop through every page user requests to scrape
     for page in range(1, max_pages + 1):
         url = f"{base_url}{search_query}&page={page}"
         
-        logger.info(f"Fetching page {page} from URL: {url}")
+        #logger.info(f"Fetching page {page} from URL: {url}")
         
         try:
             # HTTP request to url
             response = requests.get(url)
-            logger.info(f"Response status code: {response.status_code}")
+            #logger.info(f"Response status code: {response.status_code}")
 
             if response.status_code != 200:
                 st.warning(f"Failed to fetch page {page} (Status {response.status_code})")
@@ -78,12 +78,12 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
             # Parse the returned HTML content using BeautifulSoup
             soup = BeautifulSoup(response.text, "html.parser")
             
-            logger.info(f"HTML retrieved, length: {len(response.text)} characters")
+           # logger.info(f"HTML retrieved, length: {len(response.text)} characters")
             
             # Directly search for span tags with aria-hidden="false"
             # From inspect element searching this is wehre headlines are found
             headline_tags = soup.find_all("span", attrs={"aria-hidden": "false"})
-            logger.info(f"Found {len(headline_tags)} headline tags on page {page}")
+           # logger.info(f"Found {len(headline_tags)} headline tags on page {page}")
 
             headlines_found_on_page = 0
             
@@ -93,7 +93,7 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
                 headline = headline_tag.get_text(strip=True)
                 all_headlines.append(headline)  
                 
-                logger.info(f"Found headline: {headline}")
+                #logger.info(f"Found headline: {headline}")
                 
                 # Try to find associated link for up to 3 levels
                 link_tag = None
@@ -118,10 +118,10 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
                     article_url = link_tag["href"]
                     if not article_url.startswith("http"):
                         article_url = "https://www.bbc.co.uk" + article_url
-                    logger.info(f"Found link for headline: {article_url}")
+                    #logger.info(f"Found link for headline: {article_url}")
                 else:
                     article_url = ""
-                    logger.info("No link found for this headline")
+                    #logger.info("No link found for this headline")
                 
                 # Add headline to results
                 headlines_data.append({
@@ -132,13 +132,13 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
                 })
                 headlines_found_on_page += 1
             
-            logger.info(f"Added {headlines_found_on_page} headlines from page {page}")
+            #logger.info(f"Added {headlines_found_on_page} headlines from page {page}")
             
             # If no headlines have been found check to retrieve the titel of the page
             if headlines_found_on_page == 0:
-                logger.info("No headlines found on this page. Checking HTML structure:")
+               # logger.info("No headlines found on this page. Checking HTML structure:")
                 page_title = soup.find('title')
-                logger.info(f"Page title: {page_title.text if page_title else 'No title found'}")
+                #logger.info(f"Page title: {page_title.text if page_title else 'No title found'}")
                 
                 # Checking h3 tags, headings as potetntial headline containers
                 possible_headline_containers = [
@@ -149,7 +149,7 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
                 
                 # In case items are found in this other potential headers then log them for the future
                 for desc, elements in possible_headline_containers:
-                    logger.info(f"Found {len(elements)} {desc}")
+                    #logger.info(f"Found {len(elements)} {desc}")
                     if len(elements) > 0:
                         logger.info(f"Sample {desc}: {elements[0].get_text(strip=True) if elements[0] else 'empty'}")
 
@@ -161,9 +161,9 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
         time.sleep(1)  
         
     # Identify duplicate headlines (if they appear more than once, they are irrelevant)
-    logger.info(f"Processing {len(all_headlines)} total headlines for duplicates")
+    #logger.info(f"Processing {len(all_headlines)} total headlines for duplicates")
     duplicate_headlines = {h for h in all_headlines if all_headlines.count(h) > 1}
-    logger.info(f"Found {len(duplicate_headlines)} duplicate headlines")
+    #logger.info(f"Found {len(duplicate_headlines)} duplicate headlines")
     
     # Update ignore list and remove duplicates
     
