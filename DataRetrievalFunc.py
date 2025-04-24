@@ -89,7 +89,7 @@ def get_player_tournament_stats(df, player_name, tournament):
         "Seed": seed,
         "Round Reached": furthest_round,
         
-        # Both matches where teh selcted player won and lost are retrieved
+        # Both matches where the selcted player won and lost are retrieved
         "Tournament Aces": player_matches[
             player_matches["winner_name"] == player_name]["w_ace"].mean() 
             if not player_winner_matches.empty 

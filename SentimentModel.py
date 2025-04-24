@@ -20,7 +20,6 @@ def load_model():
             label_encoder = pickle.load(encoder_file)
         with open("C:/Users/tobyl/OneDrive/Documents/4th Year/Dissertation/Repository/Model Training/Finalised Model/feature_order.pkl", "rb") as feature_order:
             feature_order = pickle.load(feature_order)
-            print("Loaded feature order from pickle:", feature_order)
         return model, vectoriser, label_encoder, feature_order
     except FileNotFoundError as e:
         st.error(f"Model file not found: {e}")
@@ -31,7 +30,7 @@ def extract_vader_scores(text):
     # Initialise a vader analyser
     analyser = SentimentIntensityAnalyzer()
     scores = analyser.polarity_scores(text)
-    # Returns a dictionary mathcing the models vader extraction methodology
+    # Returns a dictionary matching the models vader extraction methodology
     return {
         'pos': scores['pos'], 
         'neg': scores['neg'], 

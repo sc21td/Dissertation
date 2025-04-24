@@ -7,7 +7,7 @@ sid_obj = SentimentIntensityAnalyzer()
 # Get the lexicon dictionary
 vader_lexicon = sid_obj.lexicon
 
-#Print specifci entries
+#Print specific entries
 for word, score in list(vader_lexicon.items())[1000:1050]: 
     print(f"{word}: {score}")
 
