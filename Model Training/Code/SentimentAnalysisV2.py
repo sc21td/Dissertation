@@ -41,7 +41,7 @@ def shuffle_and_split_dataset(file_path):
     df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
     # Stratify command ensures that Labelled Rating is equally split for each section which hopefully reduces overfitting
-    # Split into 80/20 split
+    # Split into 70/30 split
     train_df, test_df = train_test_split(df, test_size=0.3, random_state=42, stratify=df["Labelled Rating"])
 
     # Save splits into separate Excel files
@@ -51,7 +51,6 @@ def shuffle_and_split_dataset(file_path):
 
     # Display split sizes
     print(f"Training set: {len(train_df)} headlines")
-    #print(f"Validation set: {len(val_df)} headlines")
     print(f"Test set: {len(test_df)} headlines")
 
 def apply_vader(df, text_column="Statement"):
@@ -95,7 +94,7 @@ def train_model(train_file):
     # Converts labels (positive, negative, neutral) into numbers
     y_train = label_encoder.fit_transform(y_train)  
 
-    # Logistic regression model, currently set to 1000 iterations
+    # Logistic regression model, currently set to 100 iterations
     model = LogisticRegression(max_iter=100)
 
     # Train the model
