@@ -23,6 +23,8 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
         performance_points -= 1
         performance_factors.append({"metric": "Aces", "value": player_aces, 
                                    "tour_avg": tour_averages["aces"], "score": -1})
+        
+    print(f"Performance score after aces:{performance_points}")
     
     # Double faults comparison 
     player_dfs = tournament_stats.get("Tournament Double Faults", 0)
@@ -35,6 +37,7 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
         performance_factors.append({"metric": "Double Faults", "value": player_dfs, 
                                    "tour_avg": tour_averages["double_faults"], "score": -1})
     
+    print(f"Performance score after dfs:{performance_points}")
     # Break points saved percentage
     player_bp_saved_pct = tournament_stats.get("Break Points Saved Percentage", 0)
     if player_bp_saved_pct > tour_averages["break_points_saved_pct"]:
@@ -45,7 +48,8 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
         performance_points -= 1
         performance_factors.append({"metric": "Break Points Saved %", "value": player_bp_saved_pct, 
                                    "tour_avg": tour_averages["break_points_saved_pct"], "score": -1})
-        
+    
+    print(f"Performance score after bp saved:{performance_points}")
     # Progression in tournament compared to seed
     player_seed = tournament_stats.get("Seed", None)
     print("Debugging: Player seed is:", player_seed)
@@ -100,6 +104,7 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
 
     # Normalise performance score between -1 and 1
     # 4 metrics to rank players off
+    print(f"Performance score: {performance_points}")
     max_points = 4 
     normalised_performance_score = performance_points / max_points
     
@@ -141,21 +146,17 @@ def bias_detection(tournament_stats, tour_averages, sentiment_results):
     for headline in sentiment_results["Positive"]:
         # Extract actual headline text from format "Headline text (XX.XX% confidence)"
         headline_text = headline.split(" (")[0]
-        # agrees_with_stats = "Yes" if normalised_performance_score > 0 else "No"
         sentiment_details.append({
             "Headline": headline_text,
             "Sentiment": "Positive",
-            # "Agrees with Stats": agrees_with_stats
         })
     
     # Add negative headlines
     for headline in sentiment_results["Negative"]:
         headline_text = headline.split(" (")[0]
-        # agrees_with_stats = "Yes" if normalised_performance_score < 0 else "No"
         sentiment_details.append({
             "Headline": headline_text,
             "Sentiment": "Negative",
-            # "Agrees with Stats": agrees_with_stats
         })
     
     return {
@@ -307,7 +308,6 @@ def display_bias_analysis(tournament_stats, tour_averages, sentiment_results, pl
             sentiment_data = {
                 "Headline": [],
                 "Sentiment": [],
-               # "Agrees with Stats": []
             }
             
             for detail in bias_results["sentiment_details"]:
@@ -318,11 +318,6 @@ def display_bias_analysis(tournament_stats, tour_averages, sentiment_results, pl
                 sentiment_color = "green" if sentiment_text == "Positive" else "red"
                 sentiment_data["Sentiment"].append(f"<span style='color:{sentiment_color}'>{sentiment_text}</span>")
                 
-                # Format agreement with stats
-                # agrees = detail["Agrees with Stats"]
-                # agrees_color = "green" if agrees == "Yes" else "red"
-                # sentiment_data["Agrees with Stats"].append(f"<span style='color:{agrees_color}'>{agrees}</span>")
-            
             # Create DataFrame for display
             sentiment_df = pd.DataFrame(sentiment_data)
             
