@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 # CSV file for storing irrelevant headlines
 IGNORE_CSV = "irrelevant_headlines.csv"
 
+SAMPLE_HEADLINES = "benchmarking.csv"
+
 # Load existing ignored headlines from CSV
 def load_ignored_headlines():
     #logger.info("Attempting to load ignored headlines from CSV")
@@ -134,7 +136,7 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
             
             #logger.info(f"Added {headlines_found_on_page} headlines from page {page}")
             
-            # If no headlines have been found check to retrieve the titel of the page
+            # If no headlines have been found check to retrieve the title of the page
             if headlines_found_on_page == 0:
                # logger.info("No headlines found on this page. Checking HTML structure:")
                 page_title = soup.find('title')
@@ -184,4 +186,11 @@ def scrape_bbc_sport(player, tournament, year, max_pages, ignored_headlines):
     
     logger.info(f"Scraping complete. Found {len(unique_filtered_data)} unique relevant headlines after filtering")
     
+    # Write new headlines to csv to create dataset for benchmarking
+    # Append to CSV file
+    # with open(SAMPLE_HEADLINES, "a", newline="", encoding="utf-8") as file:
+    #     writer = csv.writer(file)
+    #     for headline in unique_filtered_data:
+    #         writer.writerow([headline])
+
     return pd.DataFrame(unique_filtered_data)
