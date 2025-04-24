@@ -1,4 +1,3 @@
-# import SentimentIntensityAnalyzer class from vaderSentiment.vaderSentiment module.
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # Function to print sentiments of the sentence.
@@ -26,50 +25,16 @@ def sentiment_scores(sentence):
     else :
         print("Neutral")
 
-###################################
-
-# def custom(sentences):
-#     # Custom dictionary to provide Vader with
-#     sports_dictionary = {
-#         "light work": 2.0,    # Positive for the winner
-#         "thrashes": 2.5,      # Strong positive sentiment
-#         "crushes": 2.0,       # Strong positive sentiment
-#         "stunned": -2.0,      # Negative sentiment (losing unexpectedly)
-#         "crashes out": -2.5,  # Negative sentiment
-#         "outclassed": -2.0,   # Strong negative sentiment
-#         "demolished": 2.0,    # Positive for winner, negative for loser
-#         "defeats": 1.5,       # Positive for winner
-#         "loses to": -2.0,     # Negative for the loser
-#     }
-
-#     # Initialize Vader with custom lexicon
-#     analyzer = SentimentIntensityAnalyzer()
-#     analyzer.lexicon.update(sports_dictionary)
-
-#     # Test sentences
-#     sentences = [
-#         "Sinner makes light work of Eubanks in Paris opener",  # Positive for Sinner
-#         "Djokovic thrashes Medvedev in straight sets",         # Positive for Djokovic
-#         "Rafael Nadal crashes out of the US Open",            # Negative for Nadal
-#     ]
-
-    # Run sentiment analysis
-    # if __name__ == "__main__" :
-    #     for sentence in sentences:
-    #         scores = analyzer.polarity_scores(sentence)
-    #         print(f"\nSentence: {sentence}")
-    #         print(f"Sentiment Scores: {scores}")
-
-###################################
-
 def analyse_player_sentiment(sentence, winner, loser):
     # Get sentiment score for the whole sentence
     analyzer = SentimentIntensityAnalyzer()
     scores = analyzer.polarity_scores(sentence)
     
     # Assign sentiment to winner and loser
-    winner_score = scores['compound']  # Positive sentiment for the winner
-    loser_score = -scores['compound']  # Negative sentiment for the loser
+    # Positive sentiment for the winner
+    winner_score = scores['compound']  
+    # Negative sentiment for the loser
+    loser_score = -scores['compound'] 
     
     print(f"\nSentence: {sentence}")
     print(f"Overall Sentiment: {scores}")
