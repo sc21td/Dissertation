@@ -24,8 +24,6 @@ streamlit run .\Welcome.py
 
 ## Key Files
 
-## Key Files
-
 - **Welcome.py**: The welcome page displayed when the Streamlit application is launched.
 - **WebscrapingFunc.py**: Contains the functionality for scraping tennis-related headlines.
 - **SentimentModel.py**: Implements sentiment analysis on scraped headlines.
