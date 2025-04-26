@@ -25,8 +25,9 @@ streamlit run .\Welcome.py
 ## Key Files
 
 - **Welcome.py**: The welcome page displayed when the Streamlit application is launched.
+- The following are all used within `main.py` (located in the `pages` folder).
 - **WebscrapingFunc.py**: Contains the functionality for scraping tennis-related headlines.
 - **SentimentModel.py**: Implements sentiment analysis on scraped headlines.
 - **DataRetrievalFunc.py**: Responsible for retrieving and processing match statistics store in the `Statistics` folder.
-- **BiasDetection.py**: Contains the functionality for performing bias detection, used within `main.py` (located in the `pages` folder).
+- **BiasDetection.py**: Contains the functionality for performing bias detection.
 
